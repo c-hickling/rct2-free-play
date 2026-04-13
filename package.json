@@ -1,0 +1,14 @@
+{
+  "name": "openrct2-plugins",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "@openrct2/types": "latest",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.0.0"
+  }
+}
