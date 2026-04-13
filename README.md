@@ -5,8 +5,7 @@
 | Plugin | Description |
 |--------|-------------|
 | [hello-world](src/hello-world/index.ts) | Starter plugin — adds a "Hello World" entry to the map menu |
-| [unlock-all](src/unlock-all/index.ts) | Instantly unlocks all rides, scenery sets, and shops/stalls via the map menu |
-| [free-play](src/free-play/index.ts) | Disables scenario objectives and/or enables unlimited money |
+| [free-play](src/free-play/index.ts) | Disable scenario objectives, enable unlimited money, and auto-unlock all rides and scenery |
 
 ## Installation
 

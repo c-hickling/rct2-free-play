@@ -130,8 +130,14 @@ describe("applySettings", () => {
     vi.stubGlobal("scenario", testScenario);
     vi.stubGlobal("cheats", testCheats);
     vi.stubGlobal("park", {
+      research: { inventedItems: [], uninventedItems: [], isObjectResearched: vi.fn() },
       getFlag: (f: ParkFlags) => flags[f] ?? false,
       setFlag: (f: ParkFlags, v: boolean) => { flags[f] = v; },
+    });
+    vi.stubGlobal("objectManager", {
+      installedObjects: [],
+      getAllObjects: vi.fn().mockReturnValue([]),
+      load: vi.fn(),
     });
     vi.stubGlobal("context", {
       sharedStorage: {
