@@ -1,11 +1,14 @@
 # OpenRCT2 Plugins
 
-## Plugins
+## Free Play
 
-| Plugin | Description |
-|--------|-------------|
-| [hello-world](src/hello-world/index.ts) | Starter plugin — adds a "Hello World" entry to the map menu |
-| [free-play](src/free-play/index.ts) | Disable scenario objectives, enable unlimited money, and auto-unlock all rides and scenery |
+A plugin that changes gameplay by providing various options to 
+  - enable unlimited money
+  - set park rating to 999 always
+  - instataneously unlock rides, stalls, and scenery
+  - make all rides, scenery and stalls unlockable on any map. 
+  
+  It includes a convenient UI window accessible via the map menu or a keyboard shortcut (Ctrl+Shift+U). |
 
 ## Installation
 
@@ -27,7 +30,7 @@ Then copy the output file from `dist/` to your OpenRCT2 plugins directory:
 For example on Linux:
 
 ```sh
-cp dist/hello-world.js ~/.config/OpenRCT2/plugin/
+cp dist/free-play.js ~/.config/OpenRCT2/plugin/
 ```
 
 OpenRCT2 loads plugins automatically when you start a game. To reload a plugin without restarting, open the in-game console and run `loadplugin <filename>`.
