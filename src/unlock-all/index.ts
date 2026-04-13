@@ -2,7 +2,7 @@
 
 registerPlugin({
   name: "UnlockAll",
-  version: "1.0",
+  version: "3.0",
   authors: ["you"],
   type: "local",
   licence: "MIT",
@@ -11,69 +11,90 @@ registerPlugin({
 });
 
 function main(): void {
-  ui.registerMenuItem("Unlock All Rides & Scenery", showConfirmWindow);
-}
+  console.log("[UnlockAll] Plugin loaded");
 
-function showConfirmWindow(): void {
-  const uninvented = park.research.uninventedItems;
-
-  if (uninvented.length === 0) {
-    ui.showError("Unlock All", "Everything is already unlocked.");
-    return;
-  }
-
-  const rideCount = uninvented.filter((i) => i.type === "ride").length;
-  const sceneryCount = uninvented.filter((i) => i.type === "scenery").length;
-
-  ui.openWindow({
-    classification: "unlock-all-confirm",
-    title: "Unlock All Rides & Scenery",
-    width: 300,
-    height: 100,
-    widgets: [
-      {
-        type: "label",
-        x: 10,
-        y: 20,
-        width: 280,
-        height: 14,
-        text: `This will unlock ${rideCount} ride(s) and ${sceneryCount} scenery set(s).`,
-      },
-      {
-        type: "button",
-        x: 10,
-        y: 70,
-        width: 130,
-        height: 16,
-        text: "Unlock All",
-        onClick: () => {
-          unlockAll();
-          const win = ui.getWindow("unlock-all-confirm");
-          if (win) win.close();
-        },
-      },
-      {
-        type: "button",
-        x: 155,
-        y: 70,
-        width: 130,
-        height: 16,
-        text: "Cancel",
-        onClick: () => {
-          const win = ui.getWindow("unlock-all-confirm");
-          if (win) win.close();
-        },
-      },
-    ],
+  ui.registerMenuItem("Unlock All Rides & Scenery", unlockAll);
+  ui.registerShortcut({
+    id: "unlock-all.trigger",
+    text: "Unlock All Rides & Scenery",
+    bindings: ["CTRL+SHIFT+U"],
+    callback: unlockAll,
   });
+
+  context.subscribe("map.changed", () => {
+    console.log("[UnlockAll] map.changed fired");
+    unlockAll();
+  });
+
+  unlockAll();
 }
 
 function unlockAll(): void {
-  const research = park.research;
-  const unlocked = research.uninventedItems.length;
+  console.log("[UnlockAll] unlockAll called");
 
-  research.inventedItems = [...research.inventedItems, ...research.uninventedItems];
+  // Load every installed ride and scenery group into the park.
+  // objectManager.load skips objects that are already loaded.
+  const rideIdentifiers = objectManager.installedObjects
+    .filter(o => o.type === "ride")
+    .map(o => o.identifier);
+
+  const sceneryTypes: ObjectType[] = ["scenery_group", "small_scenery", "large_scenery", "wall", "footpath_addition"];
+  const sceneryByType = sceneryTypes.map(type => ({
+    type,
+    identifiers: objectManager.installedObjects.filter(o => o.type === type).map(o => o.identifier),
+  }));
+
+  console.log(`[UnlockAll] Loading ${rideIdentifiers.length} ride(s), ` +
+    sceneryByType.map(s => `${s.identifiers.length} ${s.type}`).join(", "));
+
+  objectManager.load(rideIdentifiers);
+  for (const { identifiers } of sceneryByType) {
+    objectManager.load(identifiers);
+  }
+
+  // Move all uninvented items to invented, then add any loaded objects
+  // that the scenario left out of the research queue entirely.
+  const research = park.research;
+
+  const knownRideKeys = new Set<string>();
+  for (const item of [...research.inventedItems, ...research.uninventedItems]) {
+    if (item.type === "ride") {
+      knownRideKeys.add(`${item.rideType}:${item.object}`);
+    }
+  }
+
+  const extraRideItems: RideResearchItem[] = [];
+  for (const obj of objectManager.getAllObjects("ride")) {
+    for (const rideType of obj.rideType) {
+      if (!knownRideKeys.has(`${rideType}:${obj.index}`)) {
+        extraRideItems.push({ type: "ride", category: "gentle", rideType, object: obj.index });
+      }
+    }
+  }
+
+  const knownSceneryObjects = new Set<number>();
+  for (const item of [...research.inventedItems, ...research.uninventedItems]) {
+    if (item.type === "scenery") {
+      knownSceneryObjects.add(item.object);
+    }
+  }
+
+  const extraSceneryItems: SceneryResearchItem[] = [];
+  for (const obj of objectManager.getAllObjects("scenery_group")) {
+    if (!knownSceneryObjects.has(obj.index)) {
+      extraSceneryItems.push({ type: "scenery", category: "scenery", object: obj.index });
+    }
+  }
+
+  console.log(`[UnlockAll] ${research.uninventedItems.length} from queue, ${extraRideItems.length} extra rides, ${extraSceneryItems.length} extra scenery`);
+
+  research.inventedItems = [
+    ...research.inventedItems,
+    ...research.uninventedItems,
+    ...extraRideItems,
+    ...extraSceneryItems,
+  ];
   research.uninventedItems = [];
 
-  park.postMessage(`Unlocked ${unlocked} item(s). All rides and scenery are now available!`);
+  console.log("[UnlockAll] Done");
 }
