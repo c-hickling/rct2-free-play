@@ -2,7 +2,7 @@
 
 const WINDOW_CLASS = "unlock-all";
 
-registerPlugin({
+if (typeof registerPlugin !== "undefined") registerPlugin({
   name: "UnlockAll",
   version: "5.0",
   authors: ["you"],
@@ -39,14 +39,14 @@ function setAutoUnlock(key: string, value: boolean): void {
 
 // --- Auto-unlock on scenario load ---
 
-function onMapChanged(): void {
+export function onMapChanged(): void {
   if (getAutoUnlock("rides"))   unlockRides();
   if (getAutoUnlock("scenery")) unlockScenery();
 }
 
 // --- Unlock logic ---
 
-function unlockRides(): void {
+export function unlockRides(): void {
   loadAllInstalled("ride");
   const research = park.research;
 
@@ -73,7 +73,7 @@ function unlockRides(): void {
   research.uninventedItems = research.uninventedItems.filter(i => i.type !== "ride");
 }
 
-function unlockScenery(): void {
+export function unlockScenery(): void {
   const types: ObjectType[] = ["scenery_group", "small_scenery", "large_scenery", "wall", "footpath_addition"];
   for (const t of types) loadAllInstalled(t);
 
