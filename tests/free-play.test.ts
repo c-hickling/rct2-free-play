@@ -1,6 +1,6 @@
 /// <reference path="../node_modules/@openrct2/types/openrct2.d.ts" />
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { applyFreePlay, applyUnlimitedMoney, applySettings, isFreePlayEnabled, isUnlimitedMoneyEnabled } from "../src/free-play/index";
+import { applyFreePlay, addMoney } from "../src/free-play/index";
 
 // --- Helpers ---
 
@@ -92,86 +92,19 @@ describe("applyFreePlay", () => {
   });
 });
 
-describe("applyUnlimitedMoney", () => {
-  let flags: Partial<Record<ParkFlags, boolean>>;
-
+describe("addMoney", () => {
   beforeEach(() => {
-    flags = {};
-    vi.stubGlobal("park", {
-      getFlag: (f: ParkFlags) => flags[f] ?? false,
-      setFlag: (f: ParkFlags, v: boolean) => { flags[f] = v; },
-    });
+    vi.stubGlobal("park", { cash: 0 });
   });
 
-  it("sets noMoney flag when enabled", () => {
-    applyUnlimitedMoney(true);
-    expect(flags["noMoney"]).toBe(true);
+  it("adds 10000 to park cash", () => {
+    addMoney();
+    expect(park.cash).toBe(10000);
   });
 
-  it("clears noMoney flag when disabled", () => {
-    flags["noMoney"] = true;
-    applyUnlimitedMoney(false);
-    expect(flags["noMoney"]).toBe(false);
-  });
-});
-
-describe("applySettings", () => {
-  let testScenario: Scenario;
-  let testCheats: Cheats;
-  let flags: Partial<Record<ParkFlags, boolean>>;
-  const storage = new Map<string, unknown>();
-
-  beforeEach(() => {
-    testScenario = makeScenario();
-    testCheats = makeCheats();
-    flags = {};
-    storage.clear();
-
-    vi.stubGlobal("scenario", testScenario);
-    vi.stubGlobal("cheats", testCheats);
-    vi.stubGlobal("park", {
-      research: { inventedItems: [], uninventedItems: [], isObjectResearched: vi.fn() },
-      getFlag: (f: ParkFlags) => flags[f] ?? false,
-      setFlag: (f: ParkFlags, v: boolean) => { flags[f] = v; },
-    });
-    vi.stubGlobal("objectManager", {
-      installedObjects: [],
-      getAllObjects: vi.fn().mockReturnValue([]),
-      load: vi.fn(),
-    });
-    vi.stubGlobal("context", {
-      sharedStorage: {
-        get: (key: string, def: unknown) => storage.get(key) ?? def,
-        set: (key: string, val: unknown) => storage.set(key, val),
-        has: (key: string) => storage.has(key),
-        getAll: () => Object.fromEntries(storage),
-      },
-    });
-  });
-
-  it("applies free play when setting is enabled", () => {
-    storage.set("free-play.freePlay", true);
-    applySettings();
-    expect(testScenario.objective.type).toBe("none");
-    expect(testCheats.forcedParkRating).toBe(999);
-  });
-
-  it("applies unlimited money when setting is enabled", () => {
-    storage.set("free-play.unlimitedMoney", true);
-    applySettings();
-    expect(flags["noMoney"]).toBe(true);
-  });
-
-  it("does not apply free play when setting is disabled", () => {
-    storage.set("free-play.freePlay", false);
-    applySettings();
-    expect(testScenario.objective.type).toBe("guestsAndRating");
-    expect(testCheats.forcedParkRating).toBe(0);
-  });
-
-  it("defaults both settings to off", () => {
-    applySettings();
-    expect(testScenario.objective.type).toBe("guestsAndRating");
-    expect(flags["noMoney"]).toBeFalsy();
+  it("adds 10000 on each call", () => {
+    addMoney();
+    addMoney();
+    expect(park.cash).toBe(20000);
   });
 });

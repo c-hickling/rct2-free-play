@@ -1,6 +1,6 @@
 /// <reference path="../node_modules/@openrct2/types/openrct2.d.ts" />
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { unlockRides, unlockScenery, applySettings, isUnlockRidesEnabled, isUnlockSceneryEnabled } from "../src/free-play/index";
+import { unlockRides, unlockScenery } from "../src/free-play/index";
 
 // --- Helpers ---
 
@@ -222,83 +222,3 @@ describe("unlockScenery", () => {
   });
 });
 
-describe("applySettings (unlock behaviour)", () => {
-  let research: Research;
-  const storage = new Map<string, unknown>();
-
-  beforeEach(() => {
-    research = makeResearch(
-      [],
-      [makeRideItem(0, 1), makeSceneryItem(2)]
-    );
-
-    vi.stubGlobal("park", {
-      research,
-      getFlag: () => false,
-      setFlag: () => {},
-    });
-    vi.stubGlobal("objectManager", {
-      installedObjects: [],
-      getAllObjects: vi.fn().mockReturnValue([]),
-      load: vi.fn(),
-    });
-    vi.stubGlobal("cheats", { forcedParkRating: 0 });
-    vi.stubGlobal("scenario", { objective: { type: "guestsAndRating" }, parkRatingWarningDays: 0 });
-    vi.stubGlobal("context", {
-      sharedStorage: {
-        get: (key: string, defaultValue: unknown) => storage.get(key) ?? defaultValue,
-        set: (key: string, value: unknown) => storage.set(key, value),
-        has: (key: string) => storage.has(key),
-        getAll: () => Object.fromEntries(storage),
-      },
-    });
-
-    storage.clear();
-  });
-
-  it("unlocks rides when the rides setting is enabled", () => {
-    storage.set("free-play.unlockRides", true);
-    storage.set("free-play.unlockScenery", false);
-
-    applySettings();
-
-    expect(research.inventedItems.some(i => i.type === "ride")).toBe(true);
-    expect(research.uninventedItems.some(i => i.type === "ride")).toBe(false);
-  });
-
-  it("leaves rides alone when the rides setting is disabled", () => {
-    storage.set("free-play.unlockRides", false);
-    storage.set("free-play.unlockScenery", false);
-
-    applySettings();
-
-    expect(research.uninventedItems.some(i => i.type === "ride")).toBe(true);
-  });
-
-  it("unlocks scenery when the scenery setting is enabled", () => {
-    storage.set("free-play.unlockRides", false);
-    storage.set("free-play.unlockScenery", true);
-
-    applySettings();
-
-    expect(research.inventedItems.some(i => i.type === "scenery")).toBe(true);
-    expect(research.uninventedItems.some(i => i.type === "scenery")).toBe(false);
-  });
-
-  it("leaves scenery alone when the scenery setting is disabled", () => {
-    storage.set("free-play.unlockRides", false);
-    storage.set("free-play.unlockScenery", false);
-
-    applySettings();
-
-    expect(research.uninventedItems.some(i => i.type === "scenery")).toBe(true);
-  });
-
-  it("defaults both unlock settings to enabled when not set", () => {
-    // storage is empty — unlock defaults are true
-
-    applySettings();
-
-    expect(research.uninventedItems).toHaveLength(0);
-  });
-});

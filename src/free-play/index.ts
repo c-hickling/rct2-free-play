@@ -20,33 +20,6 @@ function main(): void {
     bindings: ["CTRL+SHIFT+U"],
     callback: openWindow,
   });
-
-  context.subscribe("map.changed", applySettings);
-  applySettings();
-}
-
-// --- Settings ---
-
-function getSetting(key: string, defaultValue: boolean): boolean {
-  return context.sharedStorage.get(`free-play.${key}`, defaultValue);
-}
-
-function setSetting(key: string, value: boolean): void {
-  context.sharedStorage.set(`free-play.${key}`, value);
-}
-
-export function isFreePlayEnabled():      boolean { return getSetting("freePlay",       false); }
-export function isUnlimitedMoneyEnabled(): boolean { return getSetting("unlimitedMoney", false); }
-export function isUnlockRidesEnabled():   boolean { return getSetting("unlockRides",    true);  }
-export function isUnlockSceneryEnabled(): boolean { return getSetting("unlockScenery",  true);  }
-
-// --- Apply all settings ---
-
-export function applySettings(): void {
-  applyFreePlay(isFreePlayEnabled());
-  applyUnlimitedMoney(isUnlimitedMoneyEnabled());
-  if (isUnlockRidesEnabled())   unlockRides();
-  if (isUnlockSceneryEnabled()) unlockScenery();
 }
 
 // --- Free play ---
@@ -61,10 +34,10 @@ export function applyFreePlay(enabled: boolean): void {
   }
 }
 
-// --- Unlimited money ---
+// --- Add money ---
 
-export function applyUnlimitedMoney(enabled: boolean): void {
-  park.setFlag("noMoney", enabled);
+export function addMoney(): void {
+  park.cash += 10000;
 }
 
 // --- Unlock rides & stalls ---
@@ -131,6 +104,10 @@ function loadAllInstalled(type: ObjectType): void {
 
 // --- Window ---
 
+function button(text: string, y: number, onClick: () => void): ButtonDesc {
+  return { type: "button", x: 5, y, width: 208, height: 14, text, onClick };
+}
+
 function openWindow(): void {
   const existing = ui.getWindow(WINDOW_CLASS);
   if (existing) { existing.bringToFront(); return; }
@@ -141,52 +118,10 @@ function openWindow(): void {
     width: 245,
     height: 96,
     widgets: [
-      checkbox("Disable scenario objectives", "freePlay",       false, 18, applyFreePlay),
-      checkbox("Unlimited money",             "unlimitedMoney", false, 37, applyUnlimitedMoney),
-      ...makeUnlockRow("Rides & Stalls", "unlockRides",   56, unlockRides),
-      ...makeUnlockRow("Scenery",        "unlockScenery", 75, unlockScenery),
+      button("Disable Scenario Objectives", 19, () => applyFreePlay(true)),
+      button("Add 10,000",                  38, addMoney),
+      button("Unlock Rides & Stalls",       57, unlockRides),
+      button("Unlock Scenery",              76, unlockScenery),
     ],
   });
-}
-
-function checkbox(
-  text: string,
-  key: string,
-  defaultValue: boolean,
-  y: number,
-  onToggle: (v: boolean) => void
-): CheckboxDesc {
-  return {
-    type: "checkbox",
-    x: 5, y: y + 1, width: 208, height: 12,
-    text,
-    isChecked: getSetting(key, defaultValue),
-    onChange: (checked: boolean) => {
-      setSetting(key, checked);
-      onToggle(checked);
-    },
-  };
-}
-
-function makeUnlockRow(
-  label: string,
-  key: string,
-  y: number,
-  onUnlock: () => void
-): WidgetDesc[] {
-  return [
-    {
-      type: "checkbox",
-      x: 5, y: y + 1, width: 150, height: 12,
-      text: label,
-      isChecked: getSetting(key, true),
-      onChange: (checked: boolean) => setSetting(key, checked),
-    } as CheckboxDesc,
-    {
-      type: "button",
-      x: 160, y: y - 1, width: 78, height: 16,
-      text: "Unlock Now",
-      onClick: onUnlock,
-    } as ButtonDesc,
-  ];
 }

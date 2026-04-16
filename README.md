@@ -2,13 +2,14 @@
 
 ## Free Play
 
-A plugin that changes gameplay by providing various options to 
-  - enable unlimited money
-  - set park rating to 999 always
-  - instataneously unlock rides, stalls, and scenery
-  - make all rides, scenery and stalls unlockable on any map. 
-  
-  It includes a convenient UI window accessible via the map menu or a keyboard shortcut (Ctrl+Shift+U). |
+A plugin that provides one-click cheats via a UI window accessible from the map menu or with Ctrl+Shift+U.
+
+| Button | Effect |
+|--------|--------|
+| Disable Scenario Objectives | Removes win/loss conditions and locks the park rating at 999 |
+| Add 10,000 | Adds 10,000 to your park cash |
+| Unlock Rides & Stalls | Instantly researches all installed ride and stall types |
+| Unlock Scenery | Instantly researches all installed scenery groups |
 
 ## Installation
 
