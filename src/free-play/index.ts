@@ -1,5 +1,7 @@
 /// <reference path="../../node_modules/@openrct2/types/openrct2.d.ts" />
 
+import { allScenariosUnlocked, toggleUnlockAllScenarios } from "./unlock-scenarios";
+
 const WINDOW_CLASS = "free-play";
 
 if (typeof registerPlugin !== "undefined") registerPlugin({
@@ -28,9 +30,11 @@ export function applyFreePlay(enabled: boolean): void {
   if (enabled) {
     scenario.objective.type = "none";
     cheats.forcedParkRating = 999;
+    cheats.makeAllDestructible = true;
     scenario.parkRatingWarningDays = 0;
   } else {
     cheats.forcedParkRating = 0;
+    cheats.makeAllDestructible = false;
   }
 }
 
@@ -112,16 +116,21 @@ function openWindow(): void {
   const existing = ui.getWindow(WINDOW_CLASS);
   if (existing) { existing.bringToFront(); return; }
 
+  const scenariosLabel = allScenariosUnlocked()
+    ? "All Scenarios Unlocked: ON"
+    : "All Scenarios Unlocked: OFF";
+
   ui.openWindow({
     classification: WINDOW_CLASS,
     title: "Free Play",
     width: 245,
-    height: 96,
+    height: 115,
     widgets: [
-      button("Disable Scenario Objectives", 19, () => applyFreePlay(true)),
-      button("Add 10,000",                  38, addMoney),
-      button("Unlock Rides & Stalls",       57, unlockRides),
-      button("Unlock Scenery",              76, unlockScenery),
+      button("Disable Scenario Objectives",  19, () => applyFreePlay(true)),
+      button("Add 10,000",                   38, addMoney),
+      button("Unlock Rides & Stalls",        57, unlockRides),
+      button("Unlock Scenery",               76, unlockScenery),
+      button(scenariosLabel,                 95, () => { toggleUnlockAllScenarios(); ui.closeWindows(WINDOW_CLASS); openWindow(); }),
     ],
   });
 }

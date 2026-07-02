@@ -6,10 +6,12 @@ A plugin that provides one-click cheats via a UI window accessible from the map 
 
 | Button | Effect |
 |--------|--------|
-| Disable Scenario Objectives | Removes win/loss conditions and locks the park rating at 999 |
+| Disable Scenario Objectives | Removes win/loss conditions, locks the park rating at 999, and allows deleting scenario-protected rides |
 | Add 10,000 | Adds 10,000 to your park cash |
 | Unlock Rides & Stalls | Instantly researches all installed ride and stall types |
 | Unlock Scenery | Instantly researches all installed scenery groups |
+| All Scenarios Unlocked: ON/OFF | Toggles whether all installed scenarios appear in the scenario select screen, regardless of completion |
+
 
 ## Installation
 
